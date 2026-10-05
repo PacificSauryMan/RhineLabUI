@@ -6,7 +6,7 @@ on:
       - 'integrations/dsh-rhine-theme/**'
       - '.github/workflows/dsh-theme.yml'
   push:
-    branches: [main]
+    branches: [main, dsh-rhine-theme]
     paths:
       - 'integrations/dsh-rhine-theme/**'
       - '.github/workflows/dsh-theme.yml'

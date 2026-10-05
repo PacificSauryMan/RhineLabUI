@@ -20,7 +20,7 @@
 
 已构建的主题使用 `.tgz` 安装：在 DSH 的 **插件 → 添加插件** 中输入文件的绝对路径，安装、启用后完整退出并重启 DSH。内置插件管理器管理当前 Desktop profile；此版本的一些 CLI 会拒绝管理 `desktop`，请使用应用内入口。
 
-完整步骤、原生适配和卸载方式见 [INSTALL.md](distribution/INSTALL.md)。PR 阶段可以从本分支构建；CI 运行成功且产物尚未过期时，也可下载 **DSH theme / windows-release** 工作流产物。GitHub 下载的产物外层 ZIP 解压后，使用其中的 `dsh-rhine-theme-1.0.0-windows.zip` 或 `.tgz`。
+完整步骤、原生适配和卸载方式见 [INSTALL.md](distribution/INSTALL.md)。可从 [GitHub Release](https://github.com/PacificSauryMan/RhineLabUI/releases/tag/dsh-rhine-v1.0.0) 下载正式安装包，也可以从本分支构建；CI 运行成功且产物尚未过期时，也可下载 **DSH theme / windows-release** 工作流产物。GitHub 下载的产物外层 ZIP 解压后，使用其中的 `dsh-rhine-theme-1.0.0-windows.zip` 或 `.tgz`。
 
 其他 Desktop 版本以及 macOS/Linux 未验证。普通主题安装不需要 Node.js；本地构建和可选原生适配需要 **Node.js 22.12+**。原生工具只支持 0.2.0-rc.2，安装前须正常退出 DSH。
 
