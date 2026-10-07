@@ -1,4 +1,4 @@
-# RHINE 1.0.0 安装说明
+# RHINE 1.0.1 安装说明
 
 RHINE 是 Windows DeepSeek Harness Desktop 的三维档案室主题。本版验证的宿主版本为 **0.2.0-rc.2**；其他版本尚未验证，原生窗口适配工具会拒绝其他版本。
 
@@ -11,12 +11,12 @@ RHINE 是 Windows DeepSeek Harness Desktop 的三维档案室主题。本版验�
 
 ## 1. 安装主题
 
-下载 GitHub Release 中的 `dsh-rhine-theme-1.0.0-windows.zip`，解压到固定目录，例如 `C:\Tools\RHINE-1.0.0`。不要只打开 ZIP 里的文件，也不要把整个目录复制进 DSH 的 `resources`。
+下载 GitHub Release 中的 `dsh-rhine-theme-1.0.1-windows.zip`，解压到固定目录，例如 `C:\Tools\RHINE-1.0.1`。不要只打开 ZIP 里的文件，也不要把整个目录复制进 DSH 的 `resources`。
 
 打开 DSH 的“插件”管理页，选择“添加插件”，在安装来源输入框填入 `.tgz` 的**绝对路径**，例如：
 
 ```text
-C:\Tools\RHINE-1.0.0\dsh-rhine-theme-1.0.0.tgz
+C:\Tools\RHINE-1.0.1\dsh-rhine-theme-1.0.1.tgz
 ```
 
 不要在输入框里加引号或填 ZIP 文件。按“安装”，完成后确认 RHINE 已启用。该 `.tgz` 已包含编译好的客户端、三维模型、字体和音频，无需 `npm run build`，也无需授权运行构建脚本。首次解析插件依赖需要网络。
@@ -45,7 +45,7 @@ node ./native/rhine-native.cjs install "C:\Path\To\DeepSeek Harness.exe"
 
 如果程序装在 `Program Files` 等受保护目录，出现拒绝访问时用管理员 PowerShell 重试。若检测到 DSH 仍在运行，先正常退出再重试；工具不会强制结束应用。若同时存在 `app` 与 `app.asar`，它会拒绝猜测实际加载位置。
 
-可先运行 `check` 代替 `install` 检查兼容性。ASAR 检查会留下未激活的 `.rhine-staging-*` 检查副本，并打印路径。
+可先运行 `check` 代替 `install` 检查兼容性及安装完整性。`Compatible` 只表示宿主版本兼容；只有 `installed and current` 表示主进程入口、preload 桥接、窗口策略与标题栏适配都已安装。出现 `repair required` 时，用同一工具执行 `install` 修复，再完整重启。ASAR 检查会留下未激活的 `.rhine-staging-*` 检查副本，并打印路径。
 
 ## 3. 重启与设置
 
@@ -77,7 +77,7 @@ node ./native/rhine-native.cjs uninstall "C:\Path\To\DeepSeek Harness.exe"
 
 - **CLI 提示 desktop 由 Electron 独占管理**：使用上述内置插件管理器。这版部分 CLI 构建拒绝 `dsh plugin --profile desktop`，不能据当前源码文档假定所有已安装构建都支持它。
 - **安装后仍是旧主题**：检查实际 profile，停用其他全界面主题，完整退出托盘进程后再启动。
-- **窗口按钮或 F11 不生效**：检查原生工具是否成功执行，以及 EXE 是否对应正在启动的那份 DSH。
+- **窗口按钮、F11 或 70% 最小面积限制不生效**：先运行原生工具的 `check`。DSH 更新或重新构建可能只覆盖主进程，留下 preload 桥接，导致主题仍显示但原生功能失效。出现 `repair required` 时执行 `install`，完整退出并重新启动对应 EXE。仅重新安装 `.tgz` 不能修复原生入口。70% 指显示器工作区面积，宽高下限各按工作区宽高乘以 √0.7 并向上取整。
 - **版本不支持或代码特征不匹配**：不要跳过检查强行注入；本包只验证 0.2.0-rc.2。
 - **出现旧模块 404**：退出并重启；仅刷新界面可能仍请求旧哈希地址。
 - **性能设置**：先使用高精度和适合显示器的帧率上限，再按实际流畅度调整。

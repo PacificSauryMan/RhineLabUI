@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs'
 import { resolve, join, dirname } from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { extractAll } from '@electron/asar'
-import { patchNative } from './native-release-core.mjs'
+import { inspectNative, patchNative } from './native-release-core.mjs'
 
 async function run() {
 const [command, supplied] = process.argv.slice(2)
@@ -36,9 +36,15 @@ if (!['install', 'uninstall', 'check'].includes(command) || !supplied) {
     const mainPath = join(source, 'lib/main.js'), preloadPath = join(source, 'lib/preload-app.cjs')
     const originalMain = await readFile(mainPath, 'utf8'), originalPreload = await readFile(preloadPath, 'utf8')
     const bridge = await readFile(join(assetRoot, 'rhine-preload.cjs'), 'utf8')
+    const expectedPolicy = await readFile(join(assetRoot, 'rhine-window-policy.mjs'), 'utf8')
     const patched = patchNative(pkg, originalMain, originalPreload, bridge, command === 'uninstall')
     if (command === 'check') {
+      const policyPath = join(source, 'lib/rhine-window-policy.mjs')
+      const status = inspectNative(originalMain, originalPreload,
+        existsSync(policyPath) ? await readFile(policyPath, 'utf8') : undefined,
+        expectedPolicy, bridge)
       console.log(`Compatible: ${pkg.version}; ${staged ? 'app.asar' : 'unpacked app'}. No application files changed.`)
+      console.log(status.installed ? 'RHINE native integration: installed and current.' : `RHINE native integration: repair required (${status.missing.join(', ')}). Run install, then restart DSH.`)
       if (staged) console.log(`Inspection copy retained at ${source}; it is not loaded by DSH.`)
     } else {
       const backup = await mkdtemp(join(resources, 'rhine-native-backup-'))
@@ -49,9 +55,13 @@ if (!['install', 'uninstall', 'check'].includes(command) || !supplied) {
       if (hadPolicy) await copyFile(policy, join(backup, 'rhine-window-policy.mjs'))
       // Complete all validation and backups before writing either entrypoint.
       try {
-        if (command === 'install') await copyFile(join(assetRoot, 'rhine-window-policy.mjs'), policy)
+        if (command === 'install') await writeFile(policy, expectedPolicy)
         await writeFile(mainPath, patched.main)
         await writeFile(preloadPath, patched.preload)
+        if (command === 'install') {
+          const status = inspectNative(await readFile(mainPath, 'utf8'), await readFile(preloadPath, 'utf8'), await readFile(policy, 'utf8'), expectedPolicy, bridge)
+          if (!status.installed) throw new Error(`Native installation incomplete: ${status.missing.join(', ')}`)
+        }
         if (staged) {
           const archiveBackup = join(resources, 'app.asar.rhine-original')
           if (existsSync(archiveBackup)) throw new Error('Original archive backup already exists; refusing to overwrite it.')

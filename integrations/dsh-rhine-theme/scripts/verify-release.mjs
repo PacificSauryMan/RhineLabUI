@@ -37,10 +37,24 @@ for(const kind of ['unpacked','asar']){
     await createPackage(app,join(root,'resources/app.asar'))
     const {rename}=await import('node:fs/promises');await rename(app,join(root,'fixture-source'))
   }
+  assert.match(run('check',exe),/repair required/)
   run('install',exe)
+  assert.match(run('check',exe),/installed and current/)
   assert.ok((await readFile(join(app,'lib/main.js'),'utf8')).includes('rhine-window-policy.mjs'))
   if(kind==='asar')assert.ok(existsSync(join(root,'resources/app.asar.rhine-original')))
   await writeFile(join(app,'lib/preload-app.cjs'),await readFile(join(app,'lib/preload-app.cjs'),'utf8')+'\n// later third-party patch\n')
+  // Reproduce the partial installation: an application rebuild replaced only main.js.
+  await writeFile(join(app,'lib/main.js'),originalMain)
+  const preloadBeforeCheck=await readFile(join(app,'lib/preload-app.cjs'),'utf8')
+  const policyBeforeCheck=await readFile(join(app,'lib/rhine-window-policy.mjs'),'utf8')
+  assert.match(run('check',exe),/repair required \(main process import\)/)
+  assert.equal(await readFile(join(app,'lib/main.js'),'utf8'),originalMain)
+  assert.equal(await readFile(join(app,'lib/preload-app.cjs'),'utf8'),preloadBeforeCheck)
+  assert.equal(await readFile(join(app,'lib/rhine-window-policy.mjs'),'utf8'),policyBeforeCheck)
+  run('install',exe)
+  assert.match(run('check',exe),/installed and current/)
+  assert.ok((await readFile(join(app,'lib/preload-app.cjs'),'utf8')).includes('// later third-party patch'))
+  report.checks.push(`${kind}: read-only detection and repair of a missing main import with retained preload/policy`)
   run('install',exe);run('uninstall',exe)
   assert.equal(await readFile(join(app,'lib/main.js'),'utf8'),originalMain)
   const removed=await readFile(join(app,'lib/preload-app.cjs'),'utf8')
@@ -68,7 +82,9 @@ const {runProfilePnpm}=await import('data:text/javascript;base64,'+Buffer.from(m
 const context={profile:'desktop',dir:profile,home,installAnchor:join(host,'apps/cli/package.json'),cwd:process.cwd()}
 const options={command:process.execPath,args:[process.env.DSH_PNPM_CLI ?? join(host,'desktop/resources/runtime/pnpm/bin/pnpm.cjs')],
   env:{DSH_HOME:home},execution:'service',outputBytes:16384,idleTimeoutMs:60000,lookupTimeoutMs:30000}
-const tarball=join(bundle,'dsh-rhine-theme-1.0.0.tgz')
+const tarballs=(await readdir(bundle)).filter(file=>/^dsh-rhine-theme-.*\.tgz$/.test(file))
+assert.equal(tarballs.length,1,'one versioned theme tarball in the release')
+const tarball=join(bundle,tarballs[0])
 const added=await runProfilePnpm(context,['add',tarball],options)
 assert.equal(added.exitCode,0,added.output)
 const manifest=JSON.parse(await readFile(join(profile,'package.json'),'utf8'))

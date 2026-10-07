@@ -20,9 +20,11 @@
 
 已构建的主题使用 `.tgz` 安装：在 DSH 的 **插件 → 添加插件** 中输入文件的绝对路径，安装、启用后完整退出并重启 DSH。内置插件管理器管理当前 Desktop profile；此版本的一些 CLI 会拒绝管理 `desktop`，请使用应用内入口。
 
-完整步骤、原生适配和卸载方式见 [INSTALL.md](distribution/INSTALL.md)。可从 [GitHub Release](https://github.com/PacificSauryMan/RhineLabUI/releases/tag/dsh-rhine-v1.0.0) 下载正式安装包，也可以从本分支构建；CI 运行成功且产物尚未过期时，也可下载 **DSH theme / windows-release** 工作流产物。GitHub 下载的产物外层 ZIP 解压后，使用其中的 `dsh-rhine-theme-1.0.0-windows.zip` 或 `.tgz`。
+完整步骤、原生适配和卸载方式见 [INSTALL.md](distribution/INSTALL.md)。可从 [GitHub Release](https://github.com/PacificSauryMan/RhineLabUI/releases/tag/dsh-rhine-v1.0.1) 下载正式安装包，也可以从本分支构建；CI 运行成功且产物尚未过期时，也可下载 **DSH theme / windows-release** 工作流产物。GitHub 下载的产物外层 ZIP 解压后，使用其中的 `dsh-rhine-theme-1.0.1-windows.zip` 或 `.tgz`。
 
 其他 Desktop 版本以及 macOS/Linux 未验证。普通主题安装不需要 Node.js；本地构建和可选原生适配需要 **Node.js 22.12+**。原生工具只支持 0.2.0-rc.2，安装前须正常退出 DSH。
+
+若主题仍显示但 F11、窗口按钮与 70% 最小面积限制失效，请使用完整 ZIP 中的原生工具执行 `check`。`repair required` 会列出缺失或过期的环节；完全退出 DSH 后执行 `install` 修复，再重启。`Compatible` 仅表示宿主版本兼容，`installed and current` 才表示适配完整。原生工具逐次备份、保留其他补丁，并在安装写入后验证完整性；只更新 `.tgz` 无法修复原生入口。详见安装说明。
 
 ## 从源码构建
 
@@ -41,10 +43,10 @@ npm run build
 
 ```powershell
 npm run release
-node scripts/verify-release.mjs releases/1.0.0/dsh-rhine-theme-1.0.0-windows.zip
+node scripts/verify-release.mjs releases/1.0.1/dsh-rhine-theme-1.0.1-windows.zip
 ```
 
-`releases/1.0.0/` 包含 Windows ZIP、预构建 TGZ、安装说明、版本说明和 SHA-256 校验文件。发布脚本会构建主题，并在临时目录生成仅含运行文件的包清单；运行包没有构建脚本或开发依赖。生成的 ZIP 内有 `CONTENTS.sha256`，验证脚本检查每个文件，并在临时模拟安装目录验证原生安装/更新/卸载与不兼容版本拒绝。仅运行验证脚本不会更改已安装的 DSH。
+`releases/1.0.1/` 包含 Windows ZIP、预构建 TGZ、安装说明、版本说明和 SHA-256 校验文件。发布脚本会构建主题，并在临时目录生成仅含运行文件的包清单；运行包没有构建脚本或开发依赖。生成的 ZIP 内有 `CONTENTS.sha256`，验证脚本检查每个文件，并在临时模拟安装目录验证原生安装/更新/卸载与不兼容版本拒绝。仅运行验证脚本不会更改已安装的 DSH。
 
 此版本 ZIP 打包依赖 Windows PowerShell 的 `Compress-Archive`。普通源码构建使用 Node.js；未声称在其他平台运行过桌面主题。维护者可将上述文件上传到 GitHub Release；CI 只上传构建产物，不自动发布 Release。
 
@@ -55,7 +57,7 @@ node scripts/verify-release.mjs releases/1.0.0/dsh-rhine-theme-1.0.0-windows.zip
 ```powershell
 $env:DSH_SOURCE_ROOT = 'C:\src\DSH'
 npm run typecheck
-node scripts/verify-release.mjs releases/1.0.0/dsh-rhine-theme-1.0.0-windows.zip
+node scripts/verify-release.mjs releases/1.0.1/dsh-rhine-theme-1.0.1-windows.zip
 ```
 
 设置 `DSH_SOURCE_ROOT` 后，发布验证额外通过真实 Desktop 插件管理器后端在临时 profile 安装、激活和卸载 TGZ。默认读取源码树内 `desktop/resources/runtime/pnpm/bin/pnpm.cjs`；不同布局可设置 `DSH_PNPM_CLI`。没有该环境变量时，脚本明确报告未运行宿主集成检查。CI 仅覆盖可独立运行的检查。

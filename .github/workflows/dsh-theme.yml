@@ -31,9 +31,9 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run release
-      - run: node scripts/verify-release.mjs releases/1.0.0/dsh-rhine-theme-1.0.0-windows.zip
+      - run: node scripts/verify-release.mjs releases/1.0.1/dsh-rhine-theme-1.0.1-windows.zip
       - uses: actions/upload-artifact@v4
         with:
           name: dsh-rhine-theme-windows
-          path: integrations/dsh-rhine-theme/releases/1.0.0/*
+          path: integrations/dsh-rhine-theme/releases/1.0.1/*
           if-no-files-found: error

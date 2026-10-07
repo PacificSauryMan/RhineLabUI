@@ -1,6 +1,6 @@
 {
   "name": "dsh-rhine-theme",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "RHINE Observatory — an optical archive workspace for DSH Desktop 0.2.0.",
   "type": "module",
   "license": "MIT",
