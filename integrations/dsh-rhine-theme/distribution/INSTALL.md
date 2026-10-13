@@ -77,13 +77,13 @@ node ./native/rhine-native.cjs uninstall "C:\Path\To\DeepSeek Harness.exe"
 
 - **CLI 提示 desktop 由 Electron 独占管理**：使用上述内置插件管理器。这版部分 CLI 构建拒绝 `dsh plugin --profile desktop`，不能据当前源码文档假定所有已安装构建都支持它。
 - **安装后仍是旧主题**：检查实际 profile，停用其他全界面主题，完整退出托盘进程后再启动。
-- **窗口按钮、F11 或 70% 最小面积限制不生效**：先运行原生工具的 `check`。DSH 更新或重新构建可能只覆盖主进程，留下 preload 桥接，导致主题仍显示但原生功能失效。出现 `repair required` 时执行 `install`，完整退出并重新启动对应 EXE。仅重新安装 `.tgz` 不能修复原生入口。70% 指显示器工作区面积，宽高下限各按工作区宽高乘以 √0.7 并向上取整。
+- **窗口按钮、F11 或 70% 最小面积限制不生效**：先运行原生工具的 `check`。DSH 更新或重新构建可能只覆盖主进程，留下 preload 桥接，导致主题仍显示但原生功能失效。出现 `repair required` 时执行 `install`，完整退出并重新启动对应 EXE。仅重新安装 `.tgz` 不能修复原生入口。
 - **版本不支持或代码特征不匹配**：不要跳过检查强行注入；本包只验证 0.2.0-rc.2。
 - **出现旧模块 404**：退出并重启；仅刷新界面可能仍请求旧哈希地址。
-- **性能设置**：先使用高精度和适合显示器的帧率上限，再按实际流畅度调整。
+- **性能设置**：先使用高精度和适合显示器的帧率上限，再按实际帧时间调整。GTX 1060 / Ryzen 5 3600X / 1440p 90 FPS 是优化目标，尚无该硬件稳定达标保证。
 
 ## 校验与许可
 
 可用 `Get-FileHash 文件名 -Algorithm SHA256` 对照 Release 的 `SHA256SUMS.txt`。不要混用不同版本的 `.tgz` 与原生工具。
 
-主题代码及上游参考代码采用 MIT 许可；MiSans 使用单独许可，本文档与包内 `THIRD_PARTY_NOTICES.md`、`licenses/` 一并保留。此项目为非官方同人主题，与原 IP 所有者无隶属关系。
+主题代码及上游参考代码采用 MIT 许可；MiSans 使用单独许可，本文档与包内 `THIRD_PARTY_NOTICES.md`、`licenses/` 一并保留。现有 SVG 开场字形保留，发布版不含 Novecento 字体。此项目为非官方同人主题，与原 IP 所有者无隶属关系。

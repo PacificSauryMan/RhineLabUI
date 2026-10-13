@@ -1,5 +1,5 @@
 export const zh = {
-  startupAnimation: '启动时播放开场动画', startupAnimationHint: '下次启动生效；关闭后直接进入首页。播放时仍可按 Esc 跳过。',
+  startupAnimation: '启动时播放开场动画', startupAnimationHint: '下次启动生效；关闭后直接进入首页。播放时仍可按 Esc 跳过。', replayStartup: '重播开场动画',
   startup: 'RHINE 开场动画', skipStartup: '跳过开场', startupReady: '工作台已就绪 · 可跳过开场', startupLoading: '正在准备本地档案 · 可随时进入工作台',
   maxFps: '最高帧率', unlimitedFps: '不限帧', customFps: '自定义 FPS',
   frameRateHint: '仅限制三维场景；自定义支持 1–360 FPS，按 Enter 或移开焦点保存。实际帧率受屏幕刷新率与性能限制。',
@@ -11,7 +11,7 @@ export const zh = {
   backProject: '返回项目档案集', projection: '档案投影', sceneLoading: '正在读取档案阵列', retry: '重新加载', noProjects: '尚无项目，请先添加工作区。',
   untitled: '未命名档案', ungrouped: '未归组档案', noResults: '没有匹配的聊天', newError: '新建档案失败，请重试。',
   previousFile: '上一份档案', nextFile: '下一份档案', previousProject: '上一个项目', nextProject: '下一个项目',
-  homeHint: '滚轮切换项目　 ·　 / 打开目录', projectHint: '滚轮切换项目　 ·　 选择档案读取　 ·　 Esc 返回首页', conversationHint: 'Esc 返回档案集　 ·　 输入内容继续对话',
+  homeHint: '滚轮 / 方向键切换项目　 ·　 Enter 进入　 ·　 / 打开目录', projectHint: '滚轮 / 方向键切换　 ·　 Enter 读取档案　 ·　 Esc 返回首页', conversationHint: 'Esc 返回档案集　 ·　 输入内容继续对话',
   blankFile: '一份新的档案。', blankDescription: '写下问题，研究从这里开始。',
   title: '档案终端', subtitle: '创作与研究工作台', directory: '档案目录', new: '新建档案', close: '关闭', opticalCaption: '物质之外，思想之内。',
   heading: '让未知，成为发现。', intro: '一个问题，一次推演，一条通往答案的新路径。',
@@ -30,7 +30,7 @@ export const zh = {
 export type CopyKey = keyof typeof zh
 export type Copy = (key: CopyKey) => string
 export const en: Record<CopyKey, string> = {
-  startupAnimation: 'Play opening on startup', startupAnimationHint: 'Applies next launch. Turn off to enter the archive directly; Esc still skips playback.',
+  startupAnimation: 'Play opening on startup', startupAnimationHint: 'Applies next launch. Turn off to enter the archive directly; Esc still skips playback.', replayStartup: 'Replay opening',
   startup: 'RHINE opening sequence', skipStartup: 'Skip opening', startupReady: 'Workspace ready · Skip at any time', startupLoading: 'Preparing local archive · Enter workspace at any time',
   maxFps: 'Maximum frame rate', unlimitedFps: 'Unlimited', customFps: 'Custom FPS',
   frameRateHint: 'Limits the 3D scene only. Custom: 1–360 FPS; press Enter or leave the field to save. Actual FPS depends on display refresh rate and performance.',
@@ -42,7 +42,7 @@ export const en: Record<CopyKey, string> = {
   backProject: 'Return to collection', projection: 'ARCHIVE PROJECTION', sceneLoading: 'Loading archive array', retry: 'Reload scene', noProjects: 'Add a workspace to begin your archive.',
   untitled: 'Untitled file', ungrouped: 'Ungrouped archives', noResults: 'No matching conversations', newError: 'Could not create the file. Please retry.',
   previousFile: 'Previous file', nextFile: 'Next file', previousProject: 'Previous project', nextProject: 'Next project',
-  homeHint: 'Scroll to switch projects · / Open index', projectHint: 'Scroll to switch projects · Select a file · Esc for home', conversationHint: 'Esc to return to collection · Write to continue',
+  homeHint: 'Scroll / Arrows switch projects · Enter open · / Index', projectHint: 'Scroll / Arrows navigate · Enter open file · Esc home', conversationHint: 'Esc to return to collection · Write to continue',
   blankFile: 'A new file.', blankDescription: 'Begin your research with a question.',
   title: 'Observatory', subtitle: 'A workspace for creative research', directory: 'Research index', new: 'New research', close: 'Close', opticalCaption: 'Beyond matter. Within thought.',
   heading: 'Make room for discovery.', intro: 'One question. A new perspective. A path to the unknown.',

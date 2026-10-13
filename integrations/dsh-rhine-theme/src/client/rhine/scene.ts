@@ -68,14 +68,41 @@ export class ArchiveScene {
   cardPoint(x: number, y: number) { return this.model.localToWorld(new THREE.Vector3(x, y, .3)); }
   cardTransform(target: THREE.Matrix4) { this.model.updateWorldMatrix(true, false); return target.copy(this.model.matrixWorld); }
   showCassette(visible: boolean) { this.model.visible = visible; }
-  setLabel(title: string, number: number) {
+  private labelSubtitle = "INTERNAL DATABASE";
+  private labelNumber = 0;
+  setLabel(title: string, number = this.labelNumber) {
+    const nextTitle = title || "INTERNAL DATABASE";
+    if (this.labelSubtitle === nextTitle && this.labelNumber === number) return;
+    this.labelSubtitle = nextTitle;
+    this.labelNumber = number;
     this.drawLabel(number);
-    const c = this.labelCanvas.getContext('2d')!;
-    c.fillStyle = '#e6e2d9'; c.fillRect(20, 138, 730, 66);
-    c.fillStyle = '#6b675f'; c.font = '32px MiSans, sans-serif';
-    c.fillText(title, 25, 177, 720);
-    if (this.labelTexture) this.labelTexture.needsUpdate = true;
     this.renderState.invalidate();
+  }
+  rotateSelected(delta: number) {
+    if (!this.targetDetail) return;
+    this.targetRotation = THREE.MathUtils.clamp(this.targetRotation + delta, -0.8, 0.8);
+    this.renderState.invalidate();
+  }
+  resetRotation() {
+    if (this.targetRotation === 0 && Math.abs(this.rotation) < 0.0005) return;
+    this.targetRotation = 0;
+    this.renderState.invalidate();
+  }
+  projectHover() {
+    if (!this.hoverCell || !this.canBrowse()) return null;
+    const cell = this.hoverCell;
+    const lift = this.hoverLifts.get(cellKey(cell)) ?? 0;
+    const p = new THREE.Vector3(
+      (cell.lane - 2) * COLUMN_SPACING - this.columnCamera.value,
+      -4.6 + 3.85 + lift,
+      (cell.row - 15.5) * ROW_SPACING + this.rail.value,
+    ).project(this.camera);
+    if (p.z < -1 || p.z > 1) return null;
+    return {
+      x: ((p.x + 1) * this.container.clientWidth) / 2,
+      y: ((1 - p.y) * this.container.clientHeight) / 2,
+      index: fileAtCell(cell),
+    };
   }
   // Carry the final authored wave into live browsing instead of snapping its height field.
   private openingField: { time: number; center: number; focus: number; weight: number } | null = null;
@@ -518,7 +545,7 @@ export class ArchiveScene {
     this.model.add(label);
     this.appearance.prepare(this.model);
     this.appearance.apply(this.model, 0);
-    this.drawLabel(0);
+    this.drawLabel(this.labelNumber);
     this.scene.add(this.model);
     this.model.position.copy(this.cellPosition(fileLocation(this.selectedSlot)));
     this.loaded = true;
@@ -730,7 +757,7 @@ export class ArchiveScene {
       this.pendingPulse.row -= shift.row;
     }
   }
-  select(index: number, navigation?: ArchiveNavigation) {
+  select(index: number, navigation?: ArchiveNavigation, title?: string) {
     if (!this.navigatingDrag) this.cancelPointer();
     this.setHover(null);
     this.lastInteraction = this.clock;
@@ -795,6 +822,8 @@ export class ArchiveScene {
       this.pendingPulse = this.looping ? { ...cell } : null;
     } else this.emitPulse(cell);
     this.targetRotation = 0;
+    this.labelNumber = index;
+    if (title !== undefined) this.labelSubtitle = title || "INTERNAL DATABASE";
     this.drawLabel(index);
   }
   private emitPulse(cell: ArchiveCell) {
@@ -811,9 +840,9 @@ export class ArchiveScene {
     c.fillRect(12, 419, 1000, 3);
     c.font = "bold 81px MiSans";
     c.fillText("RHINE LAB, LLC.", 22, 116);
-    c.font = "32px MiSans";
-    c.fillStyle = "#878476";
-    c.fillText("INTERNAL DATABASE", 25, 174);
+    c.font = "32px MiSans, sans-serif";
+    c.fillStyle = "#6b675f";
+    c.fillText(this.labelSubtitle, 25, 177, 720);
     c.fillStyle = "#171713";
     c.font = "bold 130px MiSans";
     c.fillText("NO." + String(index + 1).padStart(3, "0"), 22, 360);

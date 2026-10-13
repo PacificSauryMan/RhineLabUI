@@ -34,3 +34,16 @@ test('popover clipping exceptions and narrower plugin width stay scoped', async 
   assert.match(plugin, /margin-inline: auto/)
   assert.doesNotMatch(plugin, /(?:height|top|bottom):/)
 })
+test('upstream parity features (hover callout, optical scan marks, inspection HUD, interactive ticks, and MiSans host font) are wired', async () => {
+  const stage = await readFile(new URL('../src/client/ArchiveStage.tsx', import.meta.url), 'utf8')
+  const frame = await readFile(new URL('../src/client/ArchiveFrame.tsx', import.meta.url), 'utf8')
+  const palette = await readFile(new URL('../src/client/palette.ts', import.meta.url), 'utf8')
+  assert.match(stage, /scene\.onHover/)
+  assert.match(stage, /rh-hover-callout/)
+  assert.match(stage, /rh-inspection-marks/)
+  assert.match(stage, /rh-optical-hud/)
+  assert.match(frame, /rh-tick-btn/)
+  assert.match(frame, /rh-footer-reinit/)
+  assert.match(palette, /'--dsw-font-family': 'MiSans,/)
+})
+

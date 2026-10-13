@@ -27,7 +27,7 @@ function tokens(dark: boolean): Record<string, string> {
   for (const key of ['bubble', 'input-major', 'login-input', 'menu', 'selector', 'sidebar-fill', 'tip']) result['--dsw-specific-' + key] = surface
   for (const key of ['bubble-highlight', 'sidebar-nav-item-active-accent', 'sidebar-nav-item-active', 'sidebar-nav-item-hover']) result['--dsw-specific-' + key] = soft
   Object.assign(result, {
-    '--dsw-font-family': '"Segoe UI", "Microsoft YaHei UI", sans-serif', '--ds-font-family-code': '"Cascadia Code", Consolas, monospace',
+    '--dsw-font-family': 'MiSans, "Segoe UI", "Microsoft YaHei UI", sans-serif', '--ds-font-family-code': '"Cascadia Code", Consolas, monospace',
     '--dsw-elevation-soft': '0 4px 12px #1820140b', '--dsw-elevation-panel': '0 16px 48px #18201420',
     '--dsw-elevation-prominent': '0 24px 72px #18201430', '--dsw-elevation-stroke-color': line,
     '--dsw-shadow-lv2': '0 10px 32px #18201420', '--dsw-shadow-lv3': '0 24px 72px #18201430',

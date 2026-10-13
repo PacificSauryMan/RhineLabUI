@@ -38,8 +38,9 @@ export function Frame({ useStore, useSessions, useWorkspaces, usePanelInfo, acti
   const [mode, setMode] = useState<ArchiveMode>('home'), [phase, setPhase] = useState('home')
   const [projectId, setProjectId] = useState<string | null>(null), [fileId, setFileId] = useState<SessionId | null>(null)
   const [indexOpen, setIndexOpen] = useState(false), [settings, setSettings] = useState(false), [query, setQuery] = useState('')
-  const [focus, setFocus] = useState(false), [creating, setCreating] = useState(false), [error, setError] = useState('')
+  const [focus, setFocus] = useState(false), [manualInspect, setManualInspect] = useState(false), [creating, setCreating] = useState(false), [error, setError] = useState('')
   const [systemSettings, setSystemSettings] = useState(false)
+  const [clock, setClock] = useState(() => new Date().toLocaleTimeString('en-GB', { hour12: false }))
   const { preferences, loaded: preferencesLoaded } = useThemeView(controls)
   const [starting, setStarting] = useState<boolean | null>(() => startupHasPlayed() ? false : null), [revealing, setRevealing] = useState(false)
   const [sceneStatus, setSceneStatus] = useState<'loading' | 'ready' | 'error'>('loading')
@@ -47,6 +48,11 @@ export function Frame({ useStore, useSessions, useWorkspaces, usePanelInfo, acti
   const finishStartup = useCallback(() => { markStartupPlayed(); openingFrame.current = null; setStarting(false) }, [])
   const revealStartup = useCallback(() => setRevealing(true), [])
   const updateStartup = useCallback((value: StartupFrame) => { openingFrame.current = value }, [])
+  const replayStartup = useCallback(() => { setSettings(false); setIndexOpen(false); openingFrame.current = null; setRevealing(false); setStarting(true) }, [])
+  useEffect(() => {
+    const id = setInterval(() => { if (!document.hidden) setClock(new Date().toLocaleTimeString('en-GB', { hour12: false })) }, 1000)
+    return () => clearInterval(id)
+  }, [])
   useEffect(() => {
     if (starting !== null) return
     if (preferencesLoaded) {
@@ -73,7 +79,7 @@ export function Frame({ useStore, useSessions, useWorkspaces, usePanelInfo, acti
   const showBody = panel !== null || mode === 'conversation'
   const enterProject = useCallback((id: string) => {
     if (mode === 'project' && projectId === id) { setIndexOpen(false); return }
-    setIndexOpen(false); setProjectId(id); setFileId(null); setQuery(''); setFocus(false)
+    setIndexOpen(false); setProjectId(id); setFileId(null); setQuery(''); setFocus(false); setManualInspect(false)
     setMode('project'); setPhase('travel'); setError(''); navigation.showConversation()
   }, [navigation, mode, projectId])
   const enterFile = useCallback((id: SessionId, group?: string) => {
@@ -81,9 +87,9 @@ export function Frame({ useStore, useSessions, useWorkspaces, usePanelInfo, acti
     requested.current = id; setFileId(id); if (group) setProjectId(group)
     setMode('conversation'); setPhase('extracting'); setError(''); setIndexOpen(false); navigation.openSession(id)
   }, [navigation, mode, fileId])
-  const home = useCallback(() => { if (mode !== 'home') setPhase('returning'); setMode('home'); setFileId(null); setProjectId(null); setIndexOpen(false); setFocus(false); navigation.showConversation() }, [navigation, mode])
+  const home = useCallback(() => { if (mode !== 'home') setPhase('returning'); setMode('home'); setFileId(null); setProjectId(null); setIndexOpen(false); setFocus(false); setManualInspect(false); navigation.showConversation() }, [navigation, mode])
   const back = useCallback(() => {
-    if (mode === 'conversation' && projectId) { setMode('project'); setPhase('returning'); setFileId(null); setFocus(false); navigation.showConversation() } else home()
+    if (mode === 'conversation' && projectId) { setMode('project'); setPhase('returning'); setFileId(null); setFocus(false); setManualInspect(false); navigation.showConversation() } else home()
   }, [mode, projectId, home, navigation])
   const newFile = async () => {
     const workspace = workspaces.items.find(item => item.workspaceId === projectId)
@@ -166,18 +172,31 @@ export function Frame({ useStore, useSessions, useWorkspaces, usePanelInfo, acti
   useEffect(() => {
     const key = (event: KeyboardEvent) => {
       if (event.defaultPrevented || starting !== false) return
-      const typing = (event.target as HTMLElement).closest('input, textarea, [contenteditable="true"]')
+      const typing = (event.target as HTMLElement).closest('input, textarea, select, [contenteditable="true"], [role="textbox"]')
       if (event.key === '/' && !typing) { event.preventDefault(); setIndexOpen(value => !value); return }
+      if (!typing && !open && !settings && !indexOpen && panel === null && !event.altKey && !event.ctrlKey && !event.metaKey && !document.querySelector('[role="dialog"][aria-modal="true"]')) {
+        if (mode === 'home') {
+          if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') { event.preventDefault(); const item = adjacentProject(projects, projectId, -1); if (item) enterProject(item.id); return }
+          if (event.key === 'ArrowRight' || event.key === 'ArrowDown') { event.preventDefault(); const item = adjacentProject(projects, projectId, 1); if (item) enterProject(item.id); return }
+          if (event.key === 'Enter' && document.activeElement === document.body) { event.preventDefault(); const target = project ?? projects[0]; if (target) enterProject(target.id); return }
+        } else if (mode === 'project') {
+          if (event.key === 'ArrowLeft') { event.preventDefault(); const item = adjacentProject(projects, projectId, -1); if (item) enterProject(item.id); return }
+          if (event.key === 'ArrowRight') { event.preventDefault(); const item = adjacentProject(projects, projectId, 1); if (item) enterProject(item.id); return }
+          if (event.key === 'ArrowUp' && files.length) { event.preventDefault(); const file = files[(Math.max(0, fileIndex) - 1 + files.length) % files.length]; if (file) enterFile(file.id); return }
+          if (event.key === 'ArrowDown' && files.length) { event.preventDefault(); const file = files[(Math.max(0, fileIndex) + 1) % files.length]; if (file) enterFile(file.id); return }
+        }
+      }
       if (event.key !== 'Escape') return
       if (settings) { setSettings(false); return }
       if (indexOpen) { setIndexOpen(false); indexButton.current?.focus(); return }
       if (open) { actions.toggleSidebar(); return }
       if (focus) { setFocus(false); return }
+      if (manualInspect) { setManualInspect(false); return }
       if (document.querySelector('[role="dialog"][aria-modal="true"]')) return
       if (!typing) back()
     }
     document.addEventListener('keydown', key); return () => document.removeEventListener('keydown', key)
-  }, [settings, indexOpen, open, focus, actions, back, starting])
+  }, [settings, indexOpen, open, focus, manualInspect, panel, mode, projects, project, projectId, files, fileIndex, enterProject, enterFile, actions, back, starting])
   const stepProject = (direction: number) => { const item = adjacentProject(projects, projectId, direction); if (item) enterProject(item.id) }
   const stepFile = (direction: number) => { const file = files[(Math.max(0, fileIndex) + direction + files.length) % files.length]; if (file) enterFile(file.id) }
   const windowAction = (action: 'minimize' | 'fullscreen' | 'close') => { void window.rhineDesktop?.windowAction?.(action).catch(() => setError(copy('windowError'))) }
@@ -185,7 +204,7 @@ export function Frame({ useStore, useSessions, useWorkspaces, usePanelInfo, acti
     <Soundscape mode={mode} />
     <div ref={frame} className="rh-frame" data-startup={starting === null ? 'pending' : starting} data-mode={mode} data-phase={phase} data-focus={focus} data-panel={panel !== null} data-directory={open} data-settings={settings}
       data-rightbar-shown={geometry.rightbarShown} data-rightbar-fullscreen={geometry.rightbarFullscreen} style={{ '--rh-right': `${geometry.rightbarTrack ? right : 0}px` } as CSSProperties}>
-      <ArchiveStage opening={starting !== false && !revealing} openingFrame={openingFrame} onStatus={setSceneStatus} mode={mode} project={projectId} session={fileId} projects={projects} inspection={mode === 'conversation' && (focus || settings || systemSettings)} onSettled={settled} onPick={pick} />
+      <ArchiveStage opening={starting !== false && !revealing} openingFrame={openingFrame} onStatus={setSceneStatus} mode={mode} project={projectId} session={fileId} projects={projects} inspection={mode === 'conversation' && (focus || settings || systemSettings || manualInspect)} onToggleInspection={() => { if (focus) setFocus(false); else setManualInspect(value => !value) }} onSettled={settled} onPick={pick} />
       <div className="rh-atmosphere" aria-hidden="true" />
       <div className="rh-titlebar" data-window-drag><span>RHINE LAB / ARCHIVE SYSTEM</span></div>
       <div className="rh-system-bar" data-startup={starting === true ? 'true' : undefined}>
@@ -241,15 +260,15 @@ export function Frame({ useStore, useSessions, useWorkspaces, usePanelInfo, acti
         </div>
       </div>
       <div className={'rh-bottom-navigation' + (mode === 'conversation' || panel !== null ? ' is-away' : '')}><div><span>ARCHIVE / SELECT</span><p>{String(mode === 'home' ? 0 : projectIndex + 1).padStart(2, '0')}<em>/</em><small>{String(projects.length).padStart(2, '0')}</small></p></div>
-        <div className="rh-file-navigation"><button aria-label={copy('previousFile')} disabled={!files.length} onClick={() => stepFile(-1)}><Icon kind="arrow" /></button><span className="rh-ticks" aria-hidden="true">{Array.from({ length: 9 }, (_, i) => <i key={i} data-active={i === Math.max(0, fileIndex) % 9} />)}</span><button aria-label={copy('nextFile')} disabled={!files.length} onClick={() => stepFile(1)}><Icon kind="arrow" /></button></div>
+        <div className="rh-file-navigation"><button aria-label={copy('previousFile')} disabled={!files.length} onClick={() => stepFile(-1)}><Icon kind="arrow" /></button><span className="rh-ticks">{files.length > 0 ? files.slice(0, 12).map((file, i) => <button key={file.id} type="button" className="rh-tick-btn" data-active={file.id === fileId || (fileId === null && i === 0)} title={`${String(i + 1).padStart(2, '0')} · ${file.title}`} aria-label={file.title} onClick={() => enterFile(file.id)} />) : projects.length > 0 ? projects.slice(0, 12).map((item, i) => <button key={item.id} type="button" className="rh-tick-btn" data-active={item.id === projectId || (projectId === null && i === 0)} title={`${String(i + 1).padStart(2, '0')} · ${item.title}`} aria-label={item.title} onClick={() => enterProject(item.id)} />) : Array.from({ length: 9 }, (_, i) => <i key={i} data-active={i === Math.max(0, fileIndex) % 9} />)}</span><button aria-label={copy('nextFile')} disabled={!files.length} onClick={() => stepFile(1)}><Icon kind="arrow" /></button></div>
         <div className="rh-column-navigation"><button aria-label={copy('previousProject')} disabled={!projects.length} onClick={() => stepProject(-1)}><Icon kind="arrow" /></button><span><small>COLUMN {String(Math.max(0, projectIndex) + 1).padStart(2, '0')} / {String(projects.length).padStart(2, '0')}</small>{project?.title ?? copy('projects')}</span><button aria-label={copy('nextProject')} disabled={!projects.length} onClick={() => stepProject(1)}><Icon kind="arrow" /></button></div>
         <span className="rh-powered">POWERED BY <b>RHINE LAB</b><i /></span>
       </div>
-      <footer className="rh-footer"><span><i data-running={summary?.running} />{copy(summary?.running ? 'running' : 'ready')}</span><span>{copy(mode === 'home' ? 'homeHint' : mode === 'project' ? 'projectHint' : 'conversationHint')}</span><span>DEEPSEEK HARNESS <b>/</b> RHINE LAB</span></footer>
+      <footer className="rh-footer"><span><i data-running={summary?.running} />{copy(summary?.running ? 'running' : 'ready')}</span><span>{copy(mode === 'home' ? 'homeHint' : mode === 'project' ? 'projectHint' : 'conversationHint')}</span><span className="rh-footer-meta"><button type="button" className="rh-footer-reinit" onClick={replayStartup} title={copy('replayStartup')}>REINITIALIZE ↗</button><time className="rh-footer-clock">{clock}</time><span>DEEPSEEK HARNESS <b>/</b> RHINE LAB</span></span></footer>
       {error && <div className="rh-notice" role="alert">{error}<button onClick={() => setError('')} aria-label={copy('close')}><Icon kind="close" size={15} /></button></div>}
       {(open || settings) && <button type="button" className="rh-scrim" tabIndex={-1} aria-label={copy('close')} onClick={() => { if (open) actions.toggleSidebar(); setSettings(false) }} />}
       <div ref={drawer} className={'rh-drawer' + (open ? ' is-open' : '')} role="dialog" aria-modal={open || undefined} aria-label={copy('manage')} aria-hidden={!open}>{renderSlot('sidebar', { collapsed: !open, width: 400 })}</div>
-      {settings && <div ref={settingsPanel} className="rh-quick-settings" role="dialog" aria-modal="true" aria-label={copy('settings')}><button className="rh-close" type="button" aria-label={copy('close')} onClick={() => setSettings(false)}><Icon kind="close" size={17} /></button><Settings controls={controls} copy={copy} /><button className="rh-color-button" onClick={controls.toggleColor}><Icon kind="sun" size={16} />{copy('color')}</button></div>}
+      {settings && <div ref={settingsPanel} className="rh-quick-settings" role="dialog" aria-modal="true" aria-label={copy('settings')}><button className="rh-close" type="button" aria-label={copy('close')} onClick={() => setSettings(false)}><Icon kind="close" size={17} /></button><Settings controls={controls} copy={copy} onReplayStartup={replayStartup} /><button className="rh-color-button" onClick={controls.toggleColor}><Icon kind="sun" size={16} />{copy('color')}</button></div>}
       <div className="rh-overlays" data-shell-overlay>{renderSlot('shell.overlay', {})}</div>
       {starting === null && <div className="rh-startup-pending" aria-hidden="true" />}
       {starting === true && <StartupSequence ready={sceneStatus !== 'loading'} sceneReady={sceneStatus === 'ready' && preferences.scene} onFrame={updateStartup} onReveal={revealStartup} onDone={finishStartup} />}

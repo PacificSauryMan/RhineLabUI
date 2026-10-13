@@ -4,7 +4,7 @@ import type { ThemeControls } from './runtime.tsx'
 import type { Copy } from './locales.ts'
 import { FRAME_RATE_PRESETS, type Preferences } from '../preferences.ts'
 import { primeSound } from './Soundscape.tsx'
-export function Settings({ controls, copy }: { controls: ThemeControls; copy: Copy }) {
+export function Settings({ controls, copy, onReplayStartup }: { controls: ThemeControls; copy: Copy; onReplayStartup?: () => void }) {
   const { preferences, ready, busy } = useThemeView(controls)
   const startupHintId = useId()
   const [error, setError] = useState(false)
@@ -23,6 +23,7 @@ export function Settings({ controls, copy }: { controls: ThemeControls; copy: Co
     <label><span>{copy('quality')}</span><select value={preferences.quality} disabled={!ready || busy} onChange={e => write('quality', e.target.value as Preferences['quality'])}><option value="balanced">{copy('balanced')}</option><option value="high">{copy('high')}</option></select></label>
     <FrameRateSetting value={preferences.maxFps} disabled={!ready || busy} copy={copy} save={value => controls.update('maxFps', value)} />
     <label title={copy('soundHint')}><span>{copy('sound')}</span><input type="checkbox" checked={preferences.sound} disabled={!ready || busy} onChange={e => { if (e.target.checked) primeSound(); write('sound', e.target.checked) }} /></label>
+    {onReplayStartup && <button type="button" className="rh-enter-fullscreen" disabled={!ready || busy} onClick={onReplayStartup}>{copy('replayStartup')} ↗</button>}
     {window.rhineDesktop?.windowAction && <button type="button" className="rh-enter-fullscreen" title={copy('fullscreenHint')} onClick={() => void window.rhineDesktop?.windowAction?.('fullscreen').catch(() => setError(true))}>{copy('enterFullscreen')}</button>}
     {error && <p role="alert">{copy('error')}</p>}
   </section>

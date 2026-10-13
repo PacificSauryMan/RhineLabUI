@@ -297,7 +297,7 @@ body[data-rhine] [data-shortcut-modal='settings'], .rh-drawer, .rh-quick-setting
   background: linear-gradient(128deg,var(--rh-glint),transparent 22%,transparent 74%,color-mix(in srgb,var(--rh-glint) 30%,transparent)),var(--rh-liquid);
   backdrop-filter: blur(26px) saturate(1.18); border: 0;
   box-shadow: inset 0 1px 0 var(--rh-glint), inset 1px 0 0 color-mix(in srgb,var(--rh-glint) 55%,transparent), inset 0 -1px 0 color-mix(in srgb,var(--rh-ink) 12%,transparent), 0 30px 90px var(--rh-glass-shadow);
-  border-radius: 14px;
+  border-radius: 2px;
 }
 body[data-rhine] [data-shortcut-modal='settings'] { overflow: hidden; animation: rh-terminal-in 560ms var(--rh-ease); }
 body[data-rhine] [data-shortcut-modal='settings'] > nav { background: color-mix(in srgb,var(--rh-sheet) 28%,transparent); border-right-color: color-mix(in srgb,var(--rh-line) 45%,transparent); }
@@ -365,3 +365,76 @@ body[data-rhine-motion='reduced'] .rh-body { transition: none !important; }
 /* Read by the reversible native caption adapter, not by sidebar surfaces. */
 body[data-rhine] { --rh-native-caption-fill: transparent; }
 @media (forced-colors: active) { body[data-rhine] { --rh-native-caption-fill: Canvas; } }
+
+/* 3D cassette hover callout, optical scan SVG marks, and inspection HUD. */
+.rh-hover-callout {
+  position: absolute; left: 0; top: 0; z-index: 6; pointer-events: none;
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 5px 11px; margin-top: -38px; margin-left: 14px;
+  background: color-mix(in srgb, var(--rh-sheet) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--rh-line); border-left: 2px solid var(--rh-accent);
+  box-shadow: 0 8px 24px #1419121e;
+  color: var(--rh-ink); font-size: 11px; letter-spacing: .06em; white-space: nowrap;
+  opacity: 0; visibility: hidden; transition: opacity 140ms ease, visibility 140ms ease;
+}
+.rh-hover-callout[data-visible='true'] { opacity: 1; visibility: visible; }
+.rh-hover-callout strong { font-family: "Cascadia Code", Consolas, monospace; font-weight: 700; color: var(--rh-accent); }
+.rh-hover-callout span { max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
+
+.rh-inspection-marks {
+  position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4;
+  opacity: 0; transition: opacity 180ms ease;
+}
+.rh-inspection-marks[data-active='true'] { opacity: 1; }
+.rh-inspection-marks line { stroke: var(--rh-ink); stroke-width: 1.15; stroke-dasharray: 3 2; }
+.rh-inspection-marks rect, .rh-inspection-marks circle { fill: var(--rh-accent); }
+.rh-inspection-marks .rh-scan-caption { fill: var(--rh-muted); font-size: 9px; letter-spacing: .16em; font-family: "Cascadia Code", Consolas, monospace; }
+.rh-inspection-marks .rh-scan-digits { fill: var(--rh-ink); font-size: 18px; font-weight: 700; letter-spacing: .08em; font-family: "Cascadia Code", Consolas, monospace; }
+
+.rh-optical-hud {
+  position: absolute; left: var(--rh-edge); bottom: calc(var(--rh-foot) + 2.4vh); z-index: 7;
+  display: flex; flex-direction: column; gap: 7px; max-width: clamp(220px, 24vw, 340px);
+  pointer-events: auto; animation: rh-view-in 360ms var(--rh-ease);
+}
+.rh-frame[data-focus='true'] .rh-optical-hud,
+.rh-frame[data-panel='true'] .rh-optical-hud,
+.rh-frame[data-rightbar-shown='true'] .rh-optical-hud { opacity: 0; pointer-events: none; }
+.rh-optical-hud-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.rh-optical-hud-actions button {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px;
+  font: inherit; font-size: 11px; letter-spacing: .05em; color: var(--rh-ink);
+  background: color-mix(in srgb, var(--rh-sheet) 76%, transparent);
+  backdrop-filter: blur(12px); border: 1px solid var(--rh-line); border-radius: 2px;
+  cursor: pointer; transition: background 150ms, border-color 150ms, color 150ms;
+}
+.rh-optical-hud-actions button:hover, .rh-optical-hud-actions button.is-active {
+  background: var(--rh-soft); border-color: var(--rh-accent); color: var(--rh-ink);
+}
+.rh-optical-hud-caption {
+  margin: 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  font-size: 10px; letter-spacing: .08em; color: var(--rh-muted);
+}
+.rh-optical-hud-caption i, .rh-optical-hud-caption em { font-style: normal; }
+
+.rh-ticks button.rh-tick-btn {
+  appearance: none; padding: 0; margin: 0; width: 6px; height: 14px;
+  border: 0; background: transparent; cursor: pointer; position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.rh-ticks button.rh-tick-btn::before {
+  content: ""; width: 2px; height: 8px; background: var(--rh-line);
+  transition: height 160ms var(--rh-ease), background 160ms var(--rh-ease);
+}
+.rh-ticks button.rh-tick-btn:hover::before { height: 12px; background: var(--rh-muted); }
+.rh-ticks button.rh-tick-btn[data-active='true']::before { height: 14px; background: var(--rh-ink); }
+
+.rh-footer-meta { display: inline-flex; align-items: center; gap: 14px; }
+.rh-footer-clock { font-family: "Cascadia Code", Consolas, monospace; font-variant-numeric: tabular-nums; opacity: .82; }
+.rh-footer-reinit {
+  appearance: none; border: 0; background: transparent; padding: 2px 6px;
+  font: inherit; font-size: 10px; letter-spacing: .12em; color: var(--rh-muted);
+  cursor: pointer; transition: color 150ms, background 150ms;
+}
+.rh-footer-reinit:hover { color: var(--rh-ink); background: var(--rh-soft); }
+
